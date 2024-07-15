@@ -10,6 +10,10 @@ namespace ExpenseTracker.Data
 
         public virtual DbSet<Category> Categories { get; set; }
 
+        public virtual DbSet<Expense> Expenses { get; set; }
+
+        public virtual DbSet<Income> Incomes { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<Category>()
