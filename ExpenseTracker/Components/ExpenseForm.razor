@@ -1,0 +1,63 @@
+﻿@using ExpenseTracker.Data.Models
+@using Microsoft.AspNetCore.Components.Forms
+@rendermode InteractiveServer
+
+@using System.ComponentModel.DataAnnotations
+
+<EditForm Model="Expense" OnValidSubmit="OnValidSubmitHandler">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="mb-3">
+        <label for="title" class="form-label">Title</label>
+        <InputText id="title" class="form-control" @bind-Value="Expense.Title" />
+        <ValidationMessage For="@(() => Expense.Title)" />
+    </div>
+
+    <div class="mb-3">
+        <label for="date" class="form-label">Date</label>
+        <InputDate id="date" class="form-control" @bind-Value="Expense.Date" />
+        <ValidationMessage For="@(() => Expense.Date)" />
+    </div>
+
+    <div class="mb-3">
+        <label for="amount" class="form-label">Amount</label>
+        <InputNumber id="amount" class="form-control" @bind-Value="Expense.Amount" />
+        <ValidationMessage For="@(() => Expense.Amount)" />
+    </div>
+
+    <div class="mb-3 form-check">
+        <InputCheckbox id="planned" class="form-check-input" @bind-Value="Expense.Planned" />
+        <label for="planned" class="form-check-label">Planned</label>
+    </div>
+
+    <div class="mb-3">
+        <label for="category" class="form-label">Category</label>
+        <InputSelect id="category" class="form-control" @bind-Value="Expense.CategoryId">
+            <option value="">Select a category</option>
+            @foreach (var category in Categories)
+            {
+                <option value="@category.Id">@category.Name</option>
+            }
+        </InputSelect>
+        <ValidationMessage For="@(() => Expense.CategoryId)" />
+    </div>
+
+    <button type="submit" class="btn btn-primary">Save</button>
+</EditForm>
+
+@code {
+    [Parameter]
+    public Expense Expense { get; set; }
+
+    [Parameter]
+    public List<Category> Categories { get; set; }
+
+    [Parameter]
+    public EventCallback OnValidSubmit { get; set; }
+
+    private async Task OnValidSubmitHandler()
+    {
+        await OnValidSubmit.InvokeAsync(null);
+    }
+}

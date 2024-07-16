@@ -1,35 +1,39 @@
-﻿@page "/expenses/new"
+﻿@page "/expenses/edit/{expenseId:int}"
 @using ExpenseTracker.Services
 @rendermode InteractiveServer
+
 
 @inject ExpenseService ExpenseService
 @inject CategoryService CategoryService
 @inject NavigationManager Navigation
 
-<h3>Add New Expense</h3>
+<h3>Edit Expense</h3>
 
-@if (categories == null)
+@if (expense == null || categories == null)
 {
     <p><em>Loading...</em></p>
 }
 else
 {
-    <ExpenseForm Expense="newExpense" Categories="categories" OnValidSubmit="HandleValidSubmit" />
+    <ExpenseForm Expense="expense" Categories="categories" OnValidSubmit="HandleValidSubmit" />
 }
 
 @code {
-    private Expense newExpense = new Expense();
+    [Parameter]
+    public int expenseId { get; set; }
+
+    private Expense expense;
     private List<Category> categories;
 
     protected override async Task OnInitializedAsync()
     {
-        newExpense.Date = DateOnly.FromDateTime(DateTime.Now);
         categories = (await CategoryService.GetCategoriesAsync()).ToList();
+        expense = await ExpenseService.GetExpenseByIdAsync(expenseId);
     }
 
     private async Task HandleValidSubmit()
     {
-        await ExpenseService.AddExpenseAsync(newExpense);
+        await ExpenseService.UpdateExpenseAsync(expense);
         Navigation.NavigateTo("/expenses");
     }
 }
