@@ -3,6 +3,7 @@
 
 @using ExpenseTracker.Data.Models
 @using ExpenseTracker.Services
+@inject NavigationManager Navigation
 @inject CategoryService CategoryService
 @inject IJSRuntime JS
 
@@ -30,7 +31,9 @@
                             @foreach (var category in categories)
                             {
                                 <li class="list-group-item d-flex justify-content-between align-items-center">
-                                    @category.Name
+                                    <a href="javascript:void(0)" @onclick="() => NavigateToCategory(category.Id)">
+                                        @category.Name
+                                    </a>
                                     <button class="btn btn-danger btn-sm" @onclick="() => ConfirmDeleteCategory(category.Id)">Delete</button>
                                 </li>
                             }
@@ -210,5 +213,9 @@
                 Console.Error.WriteLine($"Error deleting category: {ex.Message}");
             }
         }
+    }
+    private void NavigateToCategory(int categoryId)
+    {
+        Navigation.NavigateTo($"/expenses/category/{categoryId}");
     }
 }

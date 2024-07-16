@@ -1,0 +1,63 @@
+﻿@page "/expenses/category/{categoryId:int}"
+@using ExpenseTracker.Services
+@inject ExpenseService ExpenseService
+@inject CategoryService CategoryService
+@inject NavigationManager Navigation
+
+<h3>Expenses by Category</h3>
+
+@if (category == null)
+{
+    <p><em>Loading category...</em></p>
+}
+else
+{
+    <h4>@category.Name</h4>
+}
+
+@if (expenses == null)
+{
+    <p><em>Loading expenses...</em></p>
+}
+else if (!expenses.Any())
+{
+    <p>No expenses available for this category.</p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Title</th>
+                <th>Date</th>
+                <th>Amount</th>
+                <th>Planned</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var expense in expenses)
+            {
+                <tr>
+                    <td>@expense.Title</td>
+                    <td>@expense.Date.ToString("yyyy-MM-dd")</td>
+                    <td>@expense.Amount</td>
+                    <td>@(expense.Planned ? "Yes" : "No")</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    [Parameter]
+    public int categoryId { get; set; }
+
+    private List<Expense> expenses;
+    private Category category;
+
+    protected override async Task OnInitializedAsync()
+    {
+        category = await CategoryService.GetCategoryByIdAsync(categoryId);
+        expenses = (await ExpenseService.GetExpensesByCategoryAsync(categoryId)).ToList();
+    }
+}

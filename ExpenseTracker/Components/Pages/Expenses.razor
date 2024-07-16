@@ -39,7 +39,11 @@ else
                     <td>@expense.Date.ToString("yyyy-MM-dd")</td>
                     <td>@expense.Amount</td>
                     <td>@(expense.Planned ? "Yes" : "No")</td>
-                    <td>@expense.Category?.Name</td>
+                    <td>
+                        <a href="javascript:void(0)" @onclick="() => NavigateToCategory(expense.CategoryId)">
+                            @expense.Category?.Name
+                        </a>
+                    </td>
                     <td>
                         <button class="btn btn-warning btn-sm" @onclick="() => EditExpense(expense.Id)">Edit</button>
                         <button class="btn btn-danger btn-sm" @onclick="() => ConfirmDeleteExpense(expense.Id)">Delete</button>
@@ -81,5 +85,10 @@ else
     {
         await ExpenseService.DeleteExpenseAsync(expenseId);
         expenses = (await ExpenseService.GetAllExpensesAsync()).ToList(); // Reîncarcă lista de cheltuieli
+    }
+
+    private void NavigateToCategory(int categoryId)
+    {
+        Navigation.NavigateTo($"/expenses/category/{categoryId}");
     }
 }

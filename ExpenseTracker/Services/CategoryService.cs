@@ -62,5 +62,11 @@ namespace ExpenseTracker.Services
                 throw;
             }
         }
+
+        public async Task<Category> GetCategoryByIdAsync(int id)
+        {
+            return await _context.Categories.FindAsync(id);
+        }
+
     }
 }

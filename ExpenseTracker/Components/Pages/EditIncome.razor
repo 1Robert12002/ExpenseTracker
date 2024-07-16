@@ -1,0 +1,69 @@
+﻿@page "/incomes/edit/{incomeId:int}"
+@using ExpenseTracker.Services
+@rendermode InteractiveServer
+
+@inject IncomeService IncomeService
+@inject NavigationManager Navigation
+
+<h3>Edit Income</h3>
+
+@if (income == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <EditForm Model="income" OnValidSubmit="HandleValidSubmit">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+
+        <div class="mb-3">
+            <label for="title" class="form-label">Title</label>
+            <InputText id="title" class="form-control" @bind-Value="income.Title" />
+            <ValidationMessage For="@(() => income.Title)" />
+        </div>
+
+        <div class="mb-3">
+            <label for="date" class="form-label">Date</label>
+            <InputDate id="date" class="form-control" @bind-Value="income.Date" />
+            <ValidationMessage For="@(() => income.Date)" />
+        </div>
+
+        <div class="mb-3">
+            <label for="amount" class="form-label">Amount</label>
+            <InputNumber id="amount" class="form-control" @bind-Value="income.Amount" />
+            <ValidationMessage For="@(() => income.Amount)" />
+        </div>
+
+        <div class="mb-3">
+            <label for="type" class="form-label">Type</label>
+            <InputSelect id="type" class="form-control" @bind-Value="income.Type">
+                @foreach (var type in Enum.GetValues(typeof(IncomeType)))
+                {
+                    <option value="@type">@type</option>
+                }
+            </InputSelect>
+            <ValidationMessage For="@(() => income.Type)" />
+        </div>
+
+        <button type="submit" class="btn btn-primary">Save</button>
+    </EditForm>
+}
+
+@code {
+    [Parameter]
+    public int incomeId { get; set; }
+
+    private Income income;
+
+    protected override async Task OnInitializedAsync()
+    {
+        income = await IncomeService.GetIncomeByIdAsync(incomeId);
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        await IncomeService.UpdateIncomeAsync(income);
+        Navigation.NavigateTo("/incomes");
+    }
+}
