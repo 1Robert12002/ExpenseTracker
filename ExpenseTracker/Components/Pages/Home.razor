@@ -1,9 +1,190 @@
 ﻿@page "/"
+@using ExpenseTracker.Services
+@rendermode InteractiveServer
 
-<PageTitle>Home</PageTitle>
+@inject IncomeService IncomeService
+@inject ExpenseService ExpenseService
+@inject NavigationManager Navigation
 
-<h1>Hello, world!</h1>
 
-Welcome to your new app.
+<h3>Expense Tracker</h3>
 
-<Counter IncrementAmount="10" />
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h4>Total Income</h4>
+                </div>
+                <div class="card-body">
+                    @if (totalIncome == null || firstIncomeDate == null || lastIncomeDate == null)
+                    {
+                        <p><em>Loading...</em></p>
+                    }
+                    else
+                    {
+                        <p>Total Income: @totalIncome.Value.ToString("C", new System.Globalization.CultureInfo("ro-RO"))</p>
+                        <p>Period: @(firstIncomeDate.HasValue ? firstIncomeDate.Value.ToString("dd MMM yyyy") : "N/A") to @(lastIncomeDate.HasValue ? lastIncomeDate.Value.ToString("dd MMM yyyy") : "N/A")</p>
+                    }
+                    @if (totalIncomeCurrentMonth == null)
+                    {
+                        <p><em>Loading...</em></p>
+                    }
+                    else
+                    {
+                        <p>Income this month: @totalIncomeCurrentMonth.Value.ToString("C", new System.Globalization.CultureInfo("ro-RO"))</p>
+                    }
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-danger text-white">
+                    <h4>Total Expense</h4>
+                </div>
+                <div class="card-body">
+                    @if (totalExpense == null || firstExpenseDate == null || lastExpenseDate == null)
+                    {
+                        <p><em>Loading...</em></p>
+                    }
+                    else
+                    {
+                        <p>Total Expense: @totalExpense.Value.ToString("C", new System.Globalization.CultureInfo("ro-RO"))</p>
+                        <p>Period: @(firstExpenseDate.HasValue ? firstExpenseDate.Value.ToString("dd MMM yyyy") : "N/A") to @(lastExpenseDate.HasValue ? lastExpenseDate.Value.ToString("dd MMM yyyy") : "N/A")</p>
+                    }
+                    @if (totalExpenseCurrentMonth == null)
+                    {
+                        <p><em>Loading...</em></p>
+                    }
+                    else
+                    {
+                        <p>Expense this month: @totalExpenseCurrentMonth.Value.ToString("C", new System.Globalization.CultureInfo("ro-RO"))</p>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h4>Balance</h4>
+                </div>
+                <div class="card-body">
+                    @if (balance == null)
+                    {
+                        <p><em>Loading...</em></p>
+                    }
+                    else
+                    {
+                        <p style="color: @(balance > 0 ? "green" : "red")">
+                            Balance: @balance.Value.ToString("C", new System.Globalization.CultureInfo("ro-RO"))
+                        </p>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row mt-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-warning text-white">
+                    <h4>Planned Expenses</h4>
+                </div>
+                <div class="card-body">
+                    @if (totalPlannedExpenses == null)
+                    {
+                        <p><em>Loading...</em></p>
+                    }
+                    else
+                    {
+                        <p>Total Planned Expenses: @totalPlannedExpenses.Value.ToString("C", new System.Globalization.CultureInfo("ro-RO"))</p>
+                    }
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-secondary text-white">
+                    <h4>Unplanned Expenses</h4>
+                </div>
+                <div class="card-body">
+                    @if (totalUnplannedExpenses == null)
+                    {
+                        <p><em>Loading...</em></p>
+                    }
+                    else
+                    {
+                        <p>Total Unplanned Expenses: @totalUnplannedExpenses.Value.ToString("C", new System.Globalization.CultureInfo("ro-RO"))</p>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    <h4>Category with Highest Expenses</h4>
+                </div>
+                <div class="card-body">
+                    @if (categoryWithHighestExpenses == null)
+                    {
+                        <p><em>Loading...</em></p>
+                    }
+                    else
+                    {
+                        <p>@categoryWithHighestExpenses</p>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private decimal? totalIncome;
+    private decimal? totalIncomeCurrentMonth;
+    private DateOnly? firstIncomeDate;
+    private DateOnly? lastIncomeDate;
+
+    private decimal? totalExpense;
+    private decimal? totalExpenseCurrentMonth;
+    private DateOnly? firstExpenseDate;
+    private DateOnly? lastExpenseDate;
+
+    private decimal? balance;
+
+    private decimal? totalPlannedExpenses;
+    private decimal? totalUnplannedExpenses;
+
+    private string categoryWithHighestExpenses;
+
+    protected override async Task OnInitializedAsync()
+    {
+        totalIncome = await IncomeService.GetTotalIncomeAsync();
+        totalIncomeCurrentMonth = await IncomeService.GetTotalIncomeForCurrentMonthAsync();
+        firstIncomeDate = await IncomeService.GetFirstIncomeDateAsync();
+        lastIncomeDate = await IncomeService.GetLastIncomeDateAsync();
+
+        totalExpense = await ExpenseService.GetTotalExpenseAsync();
+        totalExpenseCurrentMonth = await ExpenseService.GetTotalExpenseForCurrentMonthAsync();
+        firstExpenseDate = await ExpenseService.GetFirstExpenseDateAsync();
+        lastExpenseDate = await ExpenseService.GetLastExpenseDateAsync();
+
+        totalPlannedExpenses = await ExpenseService.GetTotalPlannedExpensesAsync();
+        totalUnplannedExpenses = await ExpenseService.GetTotalUnplannedExpensesAsync();
+
+        categoryWithHighestExpenses = await ExpenseService.GetCategoryWithHighestExpensesAsync();
+
+        if (totalIncome.HasValue && totalExpense.HasValue)
+        {
+            balance = totalIncome.Value - totalExpense.Value;
+        }
+
+    }
+    private void NavigateToTopCategoriesReport()
+    {
+        Navigation.NavigateTo("/top-categories-report");
+    }
+}

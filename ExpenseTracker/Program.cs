@@ -1,3 +1,7 @@
+using Blazorise;
+using Blazorise.Bootstrap;
+using Blazorise.Icons.FontAwesome;
+using Blazorise.Charts;
 using ExpenseTracker.Components;
 using ExpenseTracker.Data;
 using ExpenseTracker.Services;
@@ -15,6 +19,15 @@ builder.Services.AddScoped<IncomeService>();
 
 builder.Services.AddDbContext<ExpenseTrackerContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("ExpenseTrackerDatabase")));
+
+object value = builder.Services
+    .AddBlazorise(options =>
+    {
+        options.Immediate = true;
+    })
+    .AddBootstrapProviders()
+    .AddFontAwesomeIcons();
+
 
 var app = builder.Build();
 

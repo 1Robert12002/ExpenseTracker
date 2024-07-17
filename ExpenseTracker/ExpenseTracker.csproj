@@ -7,6 +7,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Blazorise" Version="1.5.3" />
+    <PackageReference Include="Blazorise.Bootstrap" Version="1.5.3" />
+    <PackageReference Include="Blazorise.Charts" Version="1.5.3" />
+    <PackageReference Include="Blazorise.Icons.FontAwesome" Version="1.5.3" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.7">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>

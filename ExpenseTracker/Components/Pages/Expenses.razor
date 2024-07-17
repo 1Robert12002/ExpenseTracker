@@ -1,25 +1,37 @@
 ﻿@page "/expenses"
+@using ExpenseTracker.Services
 @rendermode InteractiveServer
 
-@using ExpenseTracker.Services
 @inject ExpenseService ExpenseService
 @inject NavigationManager Navigation
 @inject IJSRuntime JSRuntime
 
 <h3>Expenses</h3>
 
+<div class="mb-3">
+    <label for="filter" class="form-label">Filter Expenses</label>
+    <select id="filter" class="form-select" @bind="SelectedFilter">
+        <option value="All">All</option>
+        <option value="Planned">Planned</option>
+        <option value="Unplanned">Unplanned</option>
+    </select>
+</div>
+
 <button class="btn btn-primary mb-3" @onclick="NavigateToAddExpense">Add Expense</button>
 
-@if (expenses == null)
+@if (filteredExpenses == null)
 {
     <p><em>Loading...</em></p>
 }
-else if (!expenses.Any())
+else if (!filteredExpenses.Any())
 {
     <p>No expenses available.</p>
 }
 else
 {
+    <div>
+        <h4>Total Expenses: @filteredExpenses.Sum(e => e.Amount).ToString("C", new System.Globalization.CultureInfo("ro-RO"))</h4>
+    </div>
     <table class="table">
         <thead>
             <tr>
@@ -32,12 +44,12 @@ else
             </tr>
         </thead>
         <tbody>
-            @foreach (var expense in expenses)
+            @foreach (var expense in filteredExpenses)
             {
                 <tr>
                     <td>@expense.Title</td>
                     <td>@expense.Date.ToString("yyyy-MM-dd")</td>
-                    <td>@expense.Amount</td>
+                    <td>@expense.Amount.ToString("C", new System.Globalization.CultureInfo("ro-RO"))</td>
                     <td>@(expense.Planned ? "Yes" : "No")</td>
                     <td>
                         <a href="javascript:void(0)" @onclick="() => NavigateToCategory(expense.CategoryId)">
@@ -56,10 +68,43 @@ else
 
 @code {
     private List<Expense> expenses;
+    private List<Expense> filteredExpenses;
+
+    private string selectedFilter = "All";
+    private string SelectedFilter
+    {
+        get => selectedFilter;
+        set
+        {
+            if (selectedFilter != value)
+            {
+                selectedFilter = value;
+                FilterExpenses();
+            }
+        }
+    }
 
     protected override async Task OnInitializedAsync()
     {
         expenses = (await ExpenseService.GetAllExpensesAsync()).ToList();
+        FilterExpenses();
+    }
+
+    private void FilterExpenses()
+    {
+        if (selectedFilter == "All")
+        {
+            filteredExpenses = expenses;
+        }
+        else if (selectedFilter == "Planned")
+        {
+            filteredExpenses = expenses.Where(e => e.Planned).ToList();
+        }
+        else if (selectedFilter == "Unplanned")
+        {
+            filteredExpenses = expenses.Where(e => !e.Planned).ToList();
+        }
+        StateHasChanged();
     }
 
     private void NavigateToAddExpense()
@@ -74,7 +119,7 @@ else
 
     private async Task ConfirmDeleteExpense(int expenseId)
     {
-        bool confirmed = await JSRuntime.InvokeAsync<bool>("confirm", "Are you sure you want to delete this expense?");
+        bool confirmed = await JSRuntime.InvokeAsync<bool>("confirm", new object[] { "Are you sure you want to delete this expense?" });
         if (confirmed)
         {
             await DeleteExpense(expenseId);
@@ -84,7 +129,8 @@ else
     private async Task DeleteExpense(int expenseId)
     {
         await ExpenseService.DeleteExpenseAsync(expenseId);
-        expenses = (await ExpenseService.GetAllExpensesAsync()).ToList(); // Reîncarcă lista de cheltuieli
+        expenses = (await ExpenseService.GetAllExpensesAsync()).ToList(); 
+        FilterExpenses(); 
     }
 
     private void NavigateToCategory(int categoryId)

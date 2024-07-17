@@ -46,5 +46,52 @@ namespace ExpenseTracker.Services
                 await _context.SaveChangesAsync();
             }
         }
+        public async Task<decimal> GetTotalIncomeAsync()
+        {
+            return await _context.Incomes.SumAsync(i => (decimal)i.Amount);
+        }
+
+        public async Task<decimal> GetTotalIncomeForCurrentMonthAsync()
+        {
+            var startOfMonth = new DateOnly(DateTime.Now.Year, DateTime.Now.Month, 1);
+            return await _context.Incomes
+                .Where(i => i.Date >= startOfMonth)
+                .SumAsync(i => (decimal)i.Amount);
+        }
+
+        public async Task<DateOnly?> GetFirstIncomeDateAsync()
+        {
+            if (await _context.Incomes.AnyAsync())
+            {
+                return await _context.Incomes.MinAsync(i => i.Date);
+            }
+            return null;
+        }
+
+        public async Task<DateOnly?> GetLastIncomeDateAsync()
+        {
+            if (await _context.Incomes.AnyAsync())
+            {
+                return await _context.Incomes.MaxAsync(i => i.Date);
+            }
+            return null;
+        }
+
+        public async Task<List<CategoryReports>> GetTopIncomeCategoriesAsync()
+        {
+            var incomes = await _context.Incomes.ToListAsync();
+
+            return incomes
+                .GroupBy(i => i.Type.ToString())
+                .Select(group => new CategoryReports
+                {
+                    Category = group.Key,
+                    TotalAmount = (decimal)group.Sum(i => i.Amount)
+                })
+                .OrderByDescending(x => x.TotalAmount)
+                .Take(3)
+                .ToList();
+        }
+
     }
 }

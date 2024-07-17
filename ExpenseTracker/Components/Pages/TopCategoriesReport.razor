@@ -1,0 +1,103 @@
+﻿@page "/top-categories-report"
+@using ExpenseTracker.Services
+@rendermode InteractiveServer
+
+@inject ExpenseService ExpenseService
+@inject IncomeService IncomeService
+@inject NavigationManager Navigation
+
+<h3>Top Categories Report</h3>
+
+<div class="mt-4">
+    <h4>Top 3 Expense Categories</h4>
+    @if (topExpenseCategories == null)
+    {
+        <p><em>Loading...</em></p>
+    }
+    else if (!topExpenseCategories.Any())
+    {
+        <p>No expense categories available.</p>
+    }
+    else
+    {
+        <ul class="list-group">
+            @foreach (var category in topExpenseCategories)
+            {
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    @category.Category
+                    <span class="badge bg-primary rounded-pill">@category.TotalAmount.ToString("C", new System.Globalization.CultureInfo("ro-RO"))</span>
+                </li>
+            }
+        </ul>
+    }
+
+    <h4 class="mt-4">Top 3 Income Categories</h4>
+    @if (topIncomeCategories == null)
+    {
+        <p><em>Loading...</em></p>
+    }
+    else if (!topIncomeCategories.Any())
+    {
+        <p>No income categories available.</p>
+    }
+    else
+    {
+        <ul class="list-group">
+            @foreach (var category in topIncomeCategories)
+            {
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    @category.Category
+                    <span class="badge bg-success rounded-pill">@category.TotalAmount.ToString("C", new System.Globalization.CultureInfo("ro-RO"))</span>
+                </li>
+            }
+        </ul>
+    }
+</div>
+
+<button class="btn btn-primary mt-4" @onclick="NavigateToHome">Back to Home</button>
+
+<style>
+    .badge-number {
+        display: inline-block;
+        width: 1.5rem;
+        height: 1.5rem;
+        background-size: cover;
+        margin-right: 0.75rem;
+    }
+
+    .bi-1-circle-fill-nav-menu {
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='white' class='bi bi-1-circle-fill' viewBox='0 0 16 16'%3E%3Cpath d='M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0M9.283 4.002H7.971L6.072 5.385v1.271l1.834-1.318h.065V12h1.312z'/%3E%3C/svg%3E");
+    }
+
+    .bi-2-circle-fill-nav-menu {
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='white' class='bi bi-2-circle-fill' viewBox='0 0 16 16'%3E%3Cpath d='M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zm-7.93-3.535a.5.5 0 1 0-.852-.525 3 3 0 1 0 .722 4.168A.5.5 0 0 0 8 7H6.5a.5.5 0 0 1-.434-.257A1.5 1.5 0 0 1 8 5.065a.5.5 0 0 0-.93-.6l-.147.07-.007.007a.5.5 0 0 0 .708.707.5.5 0 0 0-.708.707zm.1 7.102a.5.5 0 1 0-.199.96 3 3 0 1 0 2.32-.037.5.5 0 0 0-.707-.707.5.5 0 0 0 .707-.707l.146-.147a.5.5 0 0 0-.707-.707l-.147.147-.147.147-.007.007-.147-.147z'/%3E%3C/svg%3E");
+    }
+
+    .bi-3-circle-fill-nav-menu {
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='white' class='bi bi-3-circle-fill' viewBox='0 0 16 16'%3E%3Cpath d='M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zm-7.708-1.418a1.418 1.418 0 1 1 0 2.836 1.418 1.418 0 0 1 0-2.836zm.001-4.418a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 1 1 4.5 0z'/%3E%3C/svg%3E");
+    }
+
+
+</style>
+
+@code {
+    private List<CategoryReports> topExpenseCategories;
+    private List<CategoryReports> topIncomeCategories;
+
+    protected override async Task OnInitializedAsync()
+    {
+        topExpenseCategories = await ExpenseService.GetTopExpenseCategoriesAsync();
+        topIncomeCategories = await IncomeService.GetTopIncomeCategoriesAsync();
+    }
+
+    private void NavigateToHome()
+    {
+        Navigation.NavigateTo("/");
+    }
+
+    private class CategoryReport
+    {
+        public string Category { get; set; }
+        public decimal TotalAmount { get; set; }
+    }
+}

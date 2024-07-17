@@ -34,7 +34,6 @@
     <div class="mb-3">
         <label for="category" class="form-label">Category</label>
         <InputSelect id="category" class="form-control" @bind-Value="Expense.CategoryId">
-            <option value="">Select a category</option>
             @foreach (var category in Categories)
             {
                 <option value="@category.Id">@category.Name</option>

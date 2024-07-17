@@ -1,25 +1,37 @@
 ﻿@page "/incomes"
 @using ExpenseTracker.Services
 @rendermode InteractiveServer
-
 @inject IncomeService IncomeService
 @inject NavigationManager Navigation
-@inject IJSRuntime JS
+@inject IJSRuntime JSRuntime
 
 <h3>Incomes</h3>
 
+<div class="mb-3">
+    <label for="startDate" class="form-label">Start Date</label>
+    <InputDate @bind-Value="startDate" TValue="DateOnly?" class="form-control" />
+
+    <label for="endDate" class="form-label">End Date</label>
+    <InputDate @bind-Value="endDate" TValue="DateOnly?" class="form-control" />
+
+    <button class="btn btn-primary mt-3" @onclick="FilterIncomes">Filter</button>
+</div>
+
 <button class="btn btn-primary mb-3" @onclick="NavigateToAddIncome">Add Income</button>
 
-@if (incomes == null)
+@if (filteredIncomes == null)
 {
     <p><em>Loading...</em></p>
 }
-else if (!incomes.Any())
+else if (!filteredIncomes.Any())
 {
     <p>No incomes available.</p>
 }
 else
 {
+    <div>
+        <h4>Total Incomes: @filteredIncomes.Sum(i => i.Amount).ToString("C", new System.Globalization.CultureInfo("ro-RO"))</h4>
+    </div>
     <table class="table">
         <thead>
             <tr>
@@ -31,12 +43,12 @@ else
             </tr>
         </thead>
         <tbody>
-            @foreach (var income in incomes)
+            @foreach (var income in filteredIncomes)
             {
                 <tr>
                     <td>@income.Title</td>
                     <td>@income.Date.ToString("yyyy-MM-dd")</td>
-                    <td>@income.Amount</td>
+                    <td>@income.Amount.ToString("C", new System.Globalization.CultureInfo("ro-RO"))</td>
                     <td>@income.Type</td>
                     <td>
                         <button class="btn btn-warning btn-sm" @onclick="() => EditIncome(income.Id)">Edit</button>
@@ -50,10 +62,39 @@ else
 
 @code {
     private List<Income> incomes;
+    private List<Income> filteredIncomes;
+    private DateOnly? startDate;
+    private DateOnly? endDate;
 
     protected override async Task OnInitializedAsync()
     {
         incomes = (await IncomeService.GetAllIncomesAsync()).ToList();
+        filteredIncomes = new List<Income>(incomes);
+    }
+
+    private void FilterIncomes()
+    {
+        Console.WriteLine($"Filtering incomes: StartDate = {startDate}, EndDate = {endDate}");
+
+        if (startDate.HasValue && endDate.HasValue)
+        {
+            filteredIncomes = incomes.Where(i => i.Date >= startDate.Value && i.Date <= endDate.Value).ToList();
+        }
+        else if (startDate.HasValue)
+        {
+            filteredIncomes = incomes.Where(i => i.Date >= startDate.Value).ToList();
+        }
+        else if (endDate.HasValue)
+        {
+            filteredIncomes = incomes.Where(i => i.Date <= endDate.Value).ToList();
+        }
+        else
+        {
+            filteredIncomes = new List<Income>(incomes);
+        }
+
+        Console.WriteLine($"Filtered {filteredIncomes.Count} incomes");
+        StateHasChanged();
     }
 
     private void NavigateToAddIncome()
@@ -68,7 +109,7 @@ else
 
     private async Task ConfirmDeleteIncome(int incomeId)
     {
-        bool confirmed = await JS.InvokeAsync<bool>("confirm", $"Are you sure you want to delete this category?");
+        bool confirmed = await JSRuntime.InvokeAsync<bool>("confirm", new object[] { "Are you sure you want to delete this income?" });
         if (confirmed)
         {
             await DeleteIncome(incomeId);
@@ -79,5 +120,6 @@ else
     {
         await IncomeService.DeleteIncomeAsync(incomeId);
         incomes = (await IncomeService.GetAllIncomesAsync()).ToList(); 
+        FilterIncomes(); 
     }
 }
